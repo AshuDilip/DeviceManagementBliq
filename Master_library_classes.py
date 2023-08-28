@@ -1,7 +1,6 @@
 #Last update: 12:06 3/7/23 - Ashu
 # Required packages
-#TESTCHANGE
-#YOYOYOYOYOYOYOYO
+
 import minimalmodbus
 # import serial
 from tabulate import tabulate
@@ -710,6 +709,9 @@ class Fronius_Gen24_RTU:
         self.instrument = minimalmodbus.Instrument(COM, 1, debug=False)
         self.tracked_duration = 500
         initialize_RTU(self,9600,8,1,0.5,1)
+
+    def ASHURANDOMFUNCTION123(self):
+        print('u suck loser')
 
     def configure(self):
         self.ChaGriSet = self.instrument.write_register(40360, 1, 0, 6, False)
