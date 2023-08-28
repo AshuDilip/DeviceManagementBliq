@@ -1136,7 +1136,7 @@ class SAJ_hybrid_RTU:
 
              ['Bat voltage','16489','4069',self.VBAT,self.VBAT/10, 'V'],
              ['Bat current','16490','406A',self.ABAT,self.ABAT/100,'A'],
-             ['Bat Power','16493','406D',self.PBAT,self.PBAT, 'W'],
+             ['Bat Power','16493','406D',self.PBAT,-self.PBAT, 'W'],
              ['Bat SOC','16495','406F',self.SOCBAT,self.SOCBAT/100,'%'],
 
              ['TOTALCHARGE','16589-90','40CD',self.TOTALCHARGE,(self.TOTALCHARGE)/100,'kWh'],
