@@ -2275,6 +2275,496 @@ class Growatt_SPH_RTU():
         print(tabulate(self.table1, headers='firstrow', tablefmt='fancy_grid'))
 
 
+class Solis_Hybrid_RTU:
+    def __init__(self,port):
+        self.tracked_duration=500
+        self.amount_of_data=round(self.tracked_duration/5) ###### CHANGE ME (x*5seconds between data) 1440 amount of data is 2hours of time
+
+        self.instrument = minimalmodbus.Instrument(port, 1, debug=False)
+        self.tracked_duration = 500
+        initialize_RTU(self, 9600, 8, 1, 0.3, 1)
+
+        # self.instrument.serial.port = port                             ##### this is the serial port name
+        # self.instrument.serial.baudrate = 9600                           ##### Baudrate
+        # self.instrument.serial.bytesize = 8
+        # self.instrument.serial.parity   = serial.PARITY_NONE
+        # self.instrument.serial.stopbits = 1
+        # self.instrument.serial.timeout  = 0.3                           ##### seconds
+        # self.instrument.serial.write_timeout  = 5         # 2s=2000ms is default for WRITE timeout
+        # self.instrument.address = 1                                      ##### this is the slave address number
+        # self.instrument.mode = minimalmodbus.MODE_RTU                    ##### rtu or ascii mode
+        self.instrument.clear_buffers_before_each_transaction = True
+        self.instrument.close_port_after_each_call=False
+        self.instrument.handle_local_echo=False
+        
+    def configure(self):
+     #USE ONLY FOR SOLIS RHI INVERTERS
+     #SOLIS RAI NEEDS CAN ONLY BE SET LOCALLY
+        self.EnergyStorageControlSwitch = self.instrument.write_register(43110, 35, 0, 16, False) #BIT0:Spontaneous mode switch BIT1:timedcharge/discharge BIT5:Allow charge from grid : ALL MUST BE ON
+        time.sleep(5)
+        print('Inverter succesfully configured')    
+
+    def idle_discharge(self):
+        self.TimedChargeStartHour = self.instrument.write_register(43143, 23, 0, 16, False) #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeStartMinute = self.instrument.write_register(43144, 59, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedChargeEndHour = self.instrument.write_register(43145, 0, 0, 16, False)  #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeEndMinute = self.instrument.write_register(43146, 0, 0, 16, False)  #Works! #Range=[0,59m]
+     
+        time.sleep(5)
+        self.TimedDischargeStartHour = self.instrument.write_register(43147, 0, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeStartMinute = self.instrument.write_register(43148, 0, 0, 16, False)#Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedDischargeEndHour = self.instrument.write_register(43149, 23, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeEndMinute = self.instrument.write_register(43150, 59, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+
+        self.TimedDischargeCurrent = self.instrument.write_register(43142, 0, 0, 16, False)#Works! Range=[0,700] [0,70A]
+        print('Idle Discharge 0W')
+
+    def idle_charge(self):     
+        time.sleep(5)
+        self.TimedDischargeStartHour = self.instrument.write_register(43147, 23, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeStartMinute = self.instrument.write_register(43148, 59, 0, 16, False)#Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedDischargeEndHour = self.instrument.write_register(43149, 0, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeEndMinute = self.instrument.write_register(43150, 0, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+
+        self.TimedChargeStartHour = self.instrument.write_register(43143, 0, 0, 16, False) #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeStartMinute = self.instrument.write_register(43144, 0, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedChargeEndHour = self.instrument.write_register(43145, 23, 0, 16, False)  #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeEndMinute = self.instrument.write_register(43146, 59, 0, 16, False)  #Works! #Range=[0,59m]
+
+        self.TimedChargeCurrent = self.instrument.write_register(43141, 0, 0, 16, False)#Works! Range=[0,700] [0,70A]
+        print('Idle charge 0W')
+
+    def selfconsumption(self):
+        self.TimedDischargeStartHour = self.instrument.write_register(43147, 0, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeStartMinute = self.instrument.write_register(43148, 0, 0, 16, False)#Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedDischargeEndHour = self.instrument.write_register(43149, 0, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeEndMinute = self.instrument.write_register(43150, 0, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+
+        self.TimedChargeStartHour = self.instrument.write_register(43143, 0, 0, 16, False) #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeStartMinute = self.instrument.write_register(43144, 0, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedChargeEndHour = self.instrument.write_register(43145, 0, 0, 16, False)  #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeEndMinute = self.instrument.write_register(43146, 0, 0, 16, False)  #Works! #Range=[0,59m]
+        print("Inverter in self-consumption")
+    def charge(self,charge_current):
+        self.TimedDischargeStartHour = self.instrument.write_register(43147, 23, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeStartMinute = self.instrument.write_register(43148, 59, 0, 16, False)#Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedDischargeEndHour = self.instrument.write_register(43149, 0, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeEndMinute = self.instrument.write_register(43150, 0, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+     
+        self.TimedChargeStartHour = self.instrument.write_register(43143, 0, 0, 16, False) #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeStartMinute = self.instrument.write_register(43144, 0, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedChargeEndHour = self.instrument.write_register(43145, 23, 0, 16, False)  #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeEndMinute = self.instrument.write_register(43146, 59, 0, 16, False)  #Works! #Range=[0,59m]
+        time.sleep(5)
+
+        self.TimedChargeCurrent = self.instrument.write_register(43141, charge_current, 0, 16, False) #Works! Range=[0,700] [0,70A]
+        print('Inverter successfully Charging') 
+            
+    def discharge(self,discharge_current):
+     #DEPENDING ON THE BATTERY THE BATTERY CURRENT RANGE CHANGES
+        self.TimedChargeStartHour = self.instrument.write_register(43143, 23, 0, 16, False) #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeStartMinute = self.instrument.write_register(43144, 59, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedChargeEndHour = self.instrument.write_register(43145, 0, 0, 16, False)  #Works! #Range=[0,24h]
+        time.sleep(5)
+        self.TimedChargeEndMinute = self.instrument.write_register(43146, 0, 0, 16, False)  #Works! #Range=[0,59m]
+        time.sleep(5)
+     
+        self.TimedDischargeStartHour = self.instrument.write_register(43147, 0, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeStartMinute = self.instrument.write_register(43148, 0, 0, 16, False)#Works! #Range=[0,59m]
+        time.sleep(5)
+        self.TimedDischargeEndHour = self.instrument.write_register(43149, 23, 0, 16, False) #Works!#Range=[0,24h]
+        time.sleep(5)
+        self.TimedDischargeEndMinute = self.instrument.write_register(43150, 59, 0, 16, False) #Works! #Range=[0,59m]
+        time.sleep(5)
+
+        self.TimedDischargeCurrent = self.instrument.write_register(43142, discharge_current, 0, 16, False)#Works! Range=[0,700] [0,70A]
+        print('Inverter succesfully Discharging') 
+        
+    def read_registers(self):
+        self.Interval=0.3 #based on protocol 300ms frame interval communication
+        
+        self.INV_AC_TYPE_OUTPUT = self.instrument.read_register(33047,0,4, False)
+        time.sleep(self.Interval)
+        self.INV_PHASE_VOLTAGE = self.instrument.read_register(33073,1,4, False)
+        time.sleep(self.Interval)
+        self.INV_AC_POWER = self.instrument.read_long(33079,4, True, 0)
+        time.sleep(self.Interval)
+        self.INV_STANDARD_WORKING_MODE = self.instrument.read_register(33091,0,4, False)
+        time.sleep(self.Interval)
+        self.INV_TEMP = self.instrument.read_register(33093, 1, 4, True)
+        time.sleep(self.Interval)
+        self.INV_CURRENT_STATUS = self.instrument.read_register(33095,0,4, False)
+        time.sleep(self.Interval)
+        
+        self.OPERATING_STATUS = self.instrument.read_register(33121,0,4, False)
+        time.sleep(self.Interval)
+        self.OPERATING_MODE = self.instrument.read_register(33122,0,4, False)
+        time.sleep(self.Interval)
+        self.STORAGE_CONTROL = self.instrument.read_register(33132,0,4, False)
+        time.sleep(self.Interval)
+
+
+        
+        self.BAT_VOL = self.instrument.read_register(33133, 1, 4, False)
+        time.sleep(self.Interval)
+        self.BAT_CURRENT = self.instrument.read_register(33134, 1, 4, True)
+        time.sleep(self.Interval)
+        self.BAT_CURRENT_DIRECTION = self.instrument.read_register(33135, 1, 4, True)
+        time.sleep(self.Interval)
+        self.BAT_POWER = self.instrument.read_long(33149,4, True, 0)
+        time.sleep(self.Interval)
+        self.BAT_SOC = self.instrument.read_register(33139, 0, 4, False)
+        time.sleep(self.Interval)
+        
+        self.BMS_VOL = self.instrument.read_register(33141, 2, 4, False)
+        time.sleep(self.Interval)
+        self.BMS_CURRENT = self.instrument.read_register(33142, 1, 4, True)
+        time.sleep(self.Interval)
+        self.BMS_CHARGE_CURRENT_LIMITATION = self.instrument.read_register(33143, 1, 4, False)
+        time.sleep(self.Interval)
+        self.BMS_DISCHARGE_CURRENT_LIMITATION = self.instrument.read_register(33144, 1, 4, False)
+        time.sleep(self.Interval)
+        
+        self.BAT_CHARGEDISHCARGE_ENABLE = self.instrument.read_register(33203, 0, 4, False)
+        time.sleep(self.Interval)
+        self.BAT_CHARGEDISHCARGE_CURRENT = self.instrument.read_register(33204, 0, 4, False)
+        time.sleep(self.Interval)
+        self.BAT_CHARGE_MAX_CURRENT = self.instrument.read_register(33206, 1, 4, False)
+        time.sleep(self.Interval)
+        self.BAT_DISCHARGE_MAX_CURRENT = self.instrument.read_register(33207, 0, 4, False)
+        time.sleep(self.Interval)
+        
+        self.CURRENT_BATTERY_MODULE = self.instrument.read_register(43009, 0, 3, False)
+        time.sleep(self.Interval)
+        self.OVERCHARGE_SOC = self.instrument.read_register(43010, 0, 3, False)
+        time.sleep(self.Interval)
+        self.OVERDISCHARGE_SOC = self.instrument.read_register(43011, 0, 3, False)
+        time.sleep(self.Interval)
+        self.MAX_CHARGE_CURRENT = self.instrument.read_register(43012, 1, 3, False)
+        time.sleep(self.Interval)
+        self.MAX_DISCHARGE_CURRENT = self.instrument.read_register(43013, 1, 3, False)
+        time.sleep(self.Interval)
+        self.AMBIENT_TEMPERATURE_SETTING = self.instrument.read_register(43028, 0, 3, False)
+        time.sleep(self.Interval)
+        self.LIMIT_POWER_SETTING = self.instrument.read_register(43052, 2, 3, False)
+        time.sleep(self.Interval)
+        self.STORAGE_CONTROL_SWITCH = self.instrument.read_register(43110, 0, 3, False)
+        time.sleep(self.Interval)
+        
+        self.BAT_MAX_CHARGE_CURRENT = self.instrument.read_register(43117,1, 3, False)
+        time.sleep(self.Interval)
+        self.BAT_MAX_DISCHARGE_CURRENT = self.instrument.read_register(43118, 1, 3, False)
+        time.sleep(self.Interval)
+        self.BAT_CHARGE_LIMIT_POWER =  self.instrument.read_register(43130, 0, 3, False)
+        time.sleep(self.Interval)
+        self.BAT_DISCHARGE_LIMIT_POWER =  self.instrument.read_register(43131, 0, 3, False)
+        time.sleep(self.Interval)
+        
+        self.TIMED_CHARGE_CURRENT = self.instrument.read_register(43141, 1, 3, False)
+        time.sleep(self.Interval)
+        self.TIMED_DISCHARGE_CURRENT = self.instrument.read_register(43142, 1, 3, False)
+        time.sleep(self.Interval)
+        self.MAX_GRID_CHARGING_CURRENT =  self.instrument.read_register(43342, 1, 3, False)
+        time.sleep(self.Interval)
+        
+        self.TimedDischargeCurrent = self.instrument.read_register(43142, 0, 3, False)
+        time.sleep(self.Interval)
+        self.TimedDischargeStartHour= self.instrument.read_register(43147, 0, 3, False)
+        time.sleep(self.Interval)
+        self.TimedDischargeStartMinute= self.instrument.read_register(43148, 0, 3, False)
+        time.sleep(self.Interval)
+        self.TimedDischargeEndHour= self.instrument.read_register(43149, 0, 3, False)
+        time.sleep(self.Interval)
+        self.TimedDischargeEndMinute= self.instrument.read_register(43150, 0, 3, False)
+        time.sleep(self.Interval)
+        
+        self.TimedChargeStartHour= self.instrument.read_register(43143, 0, 3, False)
+        time.sleep(self.Interval)
+        self.TimedChargeStartMinute= self.instrument.read_register(43144, 0, 3, False)
+        time.sleep(self.Interval)
+        self.TimedChargeEndHour= self.instrument.read_register(43145, 0, 3, False)
+        time.sleep(self.Interval)
+        self.TimedChargeEndMinute= self.instrument.read_register(43146, 0, 3, False)
+        time.sleep(self.Interval)
+
+        self.Cumulative_production = self.instrument.read_long(33029, 4, True, 0)
+        time.sleep(self.Interval)
+        self.Cumulative_grid_feed_in = self.instrument.read_long(33173, 4, True, 0)
+        time.sleep(self.Interval)
+        self.Cumulative_energy_purchased = self.instrument.read_long(33169, 4, True, 0)
+        time.sleep(self.Interval)
+
+    def tabulate(self):
+        self.read_registers()
+        self.table = [['REgister',"Value", 'Unit'],
+        [ "INV_AC_TYPE_OUTPUT",self.INV_AC_TYPE_OUTPUT ,"-" ],
+        [ "INV_PHASE_VOLTAGE",self.INV_PHASE_VOLTAGE ,"V" ],
+        [ "INV_AC_POWER",self.INV_AC_POWER ,"W" ],
+        [ "INV_STANDARD_WORKING_MODE",self.INV_STANDARD_WORKING_MODE ,"-" ],
+        [ "INV_TEMP",self.INV_TEMP ,"C" ],
+        [ "INV_CURRENT_STATUS",self.INV_CURRENT_STATUS ,"-" ],
+        [ "OPERATING_STATUS",self.OPERATING_STATUS ,"-" ],
+        [ "OPERATING_MODE ", self.OPERATING_MODE ,"-" ],
+        [ "STORAGE_CONTROL",self.STORAGE_CONTROL ,"-" ],
+        [ "BAT_VOL ",self.BAT_VOL  ,"V" ],
+        [ "BAT_CURRENT", self.BAT_CURRENT,"A" ],
+        [ "BAT_CURRENT_DIRECTION", self.BAT_CURRENT_DIRECTION,"0:Charge 1:Discharge" ],
+        [ "BAT_POWER", self.BAT_POWER,"W" ],
+        [ "BAT_SOC",self.BAT_SOC ,"%" ],
+        [ "BMS_VOL",self.BMS_VOL,"V" ],
+        [ "BMS_CURRENT", self.BMS_CURRENT,"A" ],
+        [ "BMS_CHARGE_CURRENT_LIMITATION", self.BMS_CHARGE_CURRENT_LIMITATION,"A" ],
+        [ "BMS_DISCHARGE_CURRENT_LIMITATION",self.BMS_DISCHARGE_CURRENT_LIMITATION ,"A" ],
+        [ "BAT_CHARGEDISHCARGE_ENABLE ", self.BAT_CHARGEDISHCARGE_ENABLE ,"- " ],
+        [ "BAT_CHARGEDISHCARGE_CURRENT",self.BAT_CHARGEDISHCARGE_CURRENT ,"A" ],
+        [ "BAT_CHARGE_MAX_CURRENT", self.BAT_CHARGE_MAX_CURRENT ,"A" ],
+        [ "BAT_MAX_DISCHARGE_CURRENT", self.BAT_MAX_DISCHARGE_CURRENT,"A" ],
+        [ "CURRENT_BATTERY_MODULE",self.CURRENT_BATTERY_MODULE ,"-" ],
+        [ "OVERCHARGE_SOC",self.OVERCHARGE_SOC ,"%" ],
+        [ "OVERDISCHARGE_SOC ",self.OVERDISCHARGE_SOC  ,"%" ],
+        [ "MAX_CHARGE_CURRENT",self.MAX_CHARGE_CURRENT ,"A" ],
+        [ "MAX_DISCHARGE_CURRENT",self.MAX_DISCHARGE_CURRENT ,"A" ],
+        [ "AMBIENT_TEMPERATURE_SETTING",self.AMBIENT_TEMPERATURE_SETTING ,"-" ],
+        [ "LIMIT_POWER_SETTING", self.LIMIT_POWER_SETTING,"-" ],
+        [ "STORAGE_CONTROL_SWITCH ",self.STORAGE_CONTROL_SWITCH  ,"-" ],
+        [ "TIMED_CHARGE_CURRENT",self.TIMED_CHARGE_CURRENT ,"A" ],
+        [ "TIMED_DISCHARGE_CURRENT",self.TIMED_DISCHARGE_CURRENT ,"A" ],
+        [ "TIMED_DISCHARGE_CURRENT",self.TIMED_DISCHARGE_CURRENT ,"kWh" ],
+        [ "Cumulative_production",self.Cumulative_production ,"kWh" ],
+        [ "Cumulative grid feed-in",self.Cumulative_grid_feed_in ,"kWh" ],
+        [ "Cumulative energy purchased",self.Cumulative_energy_purchased,"kWh"]]
+        print(tabulate(self.table, headers='firstrow', tablefmt='fancy_grid'))
+
+    def Log_All_Data_Hour(self):
+        self.LIST_INV_AC_TYPE_OUTPUT=[]
+        self.LIST_INV_PHASE_VOLTAGE=[]
+        self.LIST_INV_AC_POWER=[]
+        self.LIST_INV_STANDARD_WORKING_MODE=[]
+        self.LIST_INV_TEMP=[]
+        self.LIST_INV_CURRENT_STATUS=[]
+        self.LIST_OPERATING_STATUS=[]
+        self.LIST_OPERATING_MODE=[]
+        self.LIST_STORAGE_CONTROL=[]
+        self.LIST_BAT_VOL=[]
+        self.LIST_BAT_CURRENT =[]
+        self.LIST_BAT_CURRENT_DIRECTION =[]
+        self.LIST_BAT_POWER=[]
+        self.LIST_BAT_SOC=[]
+        self.LIST_BMS_VOL=[]
+        self.LIST_BMS_CURRENT=[]
+        self.LIST_BMS_CHARGE_CURRENT_LIMITATION=[]
+        self.LIST_BMS_DISCHARGE_CURRENT_LIMITATION=[]
+        self.LIST_BAT_CHARGEDISHCARGE_ENABLE=[]
+        self.LIST_BAT_CHARGEDISHCARGE_CURRENT=[]
+        self.LIST_BAT_CHARGE_MAX_CURRENT=[]
+        self.LIST_BAT_DISCHARGE_MAX_CURRENT=[]
+        self.LIST_CURRENT_BATTERY_MODULE=[]
+        self.LIST_OVERCHARGE_SOC=[]
+        self.LIST_OVERDISCHARGE_SOC=[]
+        self.LIST_MAX_CHARGE_CURRENT=[]
+        self.LIST_MAX_DISCHARGE_CURRENT=[]
+        self.LIST_AMBIENT_TEMPERATURE_SETTING=[]
+        self.LIST_LIMIT_POWER_SETTING=[]
+        self.LIST_STORAGE_CONTROL_SWITCH =[]
+        self.LIST_BAT_MAX_CHARGE_CURRENT=[]
+        self.LIST_BAT_MAX_DISCHARGE_CURRENT=[]
+        self.LIST_BAT_CHARGE_LIMIT_POWER=[]
+        self.LIST_BAT_DISCHARGE_LIMIT_POWER=[]
+        self.LIST_TIMED_CHARGE_CURRENT=[]
+        self.LIST_TIMED_DISCHARGE_CURRENT=[]
+        self.LIST_MAX_GRID_CHARGING_CURRENT=[]
+
+        while count < 500:
+            try:
+                self.read_registers()
+                self.LIST_INV_AC_TYPE_OUTPUT.append(str(self.INV_AC_TYPE_OUTPUT)+", ")
+                self.LIST_INV_PHASE_VOLTAGE.append(str(self.INV_PHASE_VOLTAGE)+", ")
+                self.LIST_INV_AC_POWER.append(str(self.INV_AC_POWER)+", ")
+                self.LIST_INV_STANDARD_WORKING_MODE.append(str(self.INV_STANDARD_WORKING_MODE)+", ")
+                self.LIST_INV_TEMP.append(str(self.INV_TEMP)+", ")
+                self.LIST_INV_CURRENT_STATUS.append(str(self.INV_CURRENT_STATUS)+", ")
+                self.LIST_OPERATING_STATUS.append(str(self.OPERATING_STATUS)+", ")
+                self.LIST_OPERATING_MODE.append(str(self.OPERATING_MODE)+", ")
+                self.LIST_STORAGE_CONTROL.append(str(self.STORAGE_CONTROL)+", ")
+                self.LIST_BAT_VOL.append(str(self.BAT_VOL)+", ")
+                self.LIST_BAT_CURRENT.append(str(self.BAT_CURRENT)+", ")
+                self.LIST_BAT_CURRENT_DIRECTION.append(str(self.BAT_CURRENT)+", ")
+                self.LIST_BAT_POWER.append(str(self.BAT_POWER)+", ")
+                self.LIST_BAT_SOC.append(str(self.BAT_SOC)+", ")
+                self.LIST_BMS_VOL.append(str(self.BMS_VOL)+", ")
+                self.LIST_BMS_CURRENT.append(str(self.BMS_CURRENT)+", ")
+                self.LIST_BMS_CHARGE_CURRENT_LIMITATION.append(str(self.BMS_CHARGE_CURRENT_LIMITATION)+", ")
+                self.LIST_BMS_DISCHARGE_CURRENT_LIMITATION.append(str(self.BMS_DISCHARGE_CURRENT_LIMITATION)+", ")
+                self.LIST_BAT_CHARGEDISHCARGE_ENABLE.append(str(self.BAT_CHARGEDISHCARGE_ENABLE)+", ")
+                self.LIST_BAT_CHARGEDISHCARGE_CURRENT.append(str(self.BAT_CHARGEDISHCARGE_CURRENT)+", ")
+                self.LIST_BAT_CHARGE_MAX_CURRENT.append(str(self.BAT_CHARGE_MAX_CURRENT)+", ")
+                self.LIST_BAT_DISCHARGE_MAX_CURRENT.append(str(self.BAT_DISCHARGE_MAX_CURRENT)+", ")
+                self.LIST_CURRENT_BATTERY_MODULE.append(str(self.CURRENT_BATTERY_MODULE)+", ")
+                self.LIST_OVERCHARGE_SOC.append(str(self.OVERCHARGE_SOC)+", ")
+                self.LIST_OVERDISCHARGE_SOC.append(str(self.OVERDISCHARGE_SOC)+", ")
+                self.LIST_MAX_CHARGE_CURRENT.append(str(self.MAX_CHARGE_CURRENT)+", ")
+                self.LIST_MAX_DISCHARGE_CURRENT.append(str(self.MAX_DISCHARGE_CURRENT)+" ,")
+                self.LIST_AMBIENT_TEMPERATURE_SETTING.append(str(self.AMBIENT_TEMPERATURE_SETTING)+", ")
+                self.LIST_LIMIT_POWER_SETTING.append(str(self.LIMIT_POWER_SETTING)+", ")
+                self.LIST_STORAGE_CONTROL_SWITCH.append(str(self.STORAGE_CONTROL_SWITCH)+", ")
+                self.LIST_BAT_MAX_CHARGE_CURRENT.append(str(self.BAT_MAX_CHARGE_CURRENT)+", ")
+                self.LIST_BAT_MAX_DISCHARGE_CURRENT.append(str(self.BAT_MAX_DISCHARGE_CURRENT)+", ")
+                self.LIST_BAT_CHARGE_LIMIT_POWER.append(str(self.BAT_CHARGE_LIMIT_POWER)+", ")
+                self.LIST_BAT_DISCHARGE_LIMIT_POWER.append(str(self.BAT_DISCHARGE_LIMIT_POWER)+", ")
+                self.LIST_TIMED_CHARGE_CURRENT.append(str(self.TIMED_CHARGE_CURRENT)+", ")
+                self.LIST_TIMED_DISCHARGE_CURRENT.append(str(self.TIMED_DISCHARGE_CURRENT)+", ")
+                self.LIST_MAX_GRID_CHARGING_CURRENT.append(str(self.MAX_GRID_CHARGING_CURRENT)+", ")
+                
+                self.file = open(r'C:\Users\yorick.niessink\Documents\Solis Research\Solis_Readings_Discharge.txt','w')
+                self.file.writelines(self.LIST_INV_AC_POWER)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_INV_TEMP)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_VOL)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_CURRENT)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_CURRENT_DIRECTION)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_POWER)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_SOC)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BMS_CURRENT)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BMS_CHARGE_CURRENT_LIMITATION)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BMS_DISCHARGE_CURRENT_LIMITATION)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_CHARGEDISHCARGE_CURRENT)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_CHARGE_MAX_CURRENT)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_DISCHARGE_MAX_CURRENT)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_MAX_DISCHARGE_CURRENT)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_STORAGE_CONTROL_SWITCH)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_MAX_CHARGE_CURRENT)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_MAX_DISCHARGE_CURRENT)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_BAT_CHARGE_LIMIT_POWER)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_TIMED_CHARGE_CURRENT)
+                self.file.write("\n")
+                self.file.writelines(self.LIST_TIMED_DISCHARGE_CURRENT)
+                self.file.close()         
+                
+                print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
+                self.count += 1
+                print(self.count)
+            except:
+                print("pass")
+                pass
+
+
+    def Log_Pri_Data_Hour(self,logtime,filepath):
+        self.LIST_INV_AC_POWER = []
+        self.LIST_INV_TEMP = []
+
+        self.LIST_BAT_POWER = []
+        self.LIST_BAT_SOC = []
+        self.LIST_BAT_CURRENT_DIRECTION = [] ## Solis Specific
+
+        self.LIST_CUM_Production = []
+        self.LIST_CUM_GRID_FEED_IN = []
+        self.LIST_CUM_ENERGY_PURCHASED = []
+
+        self.count=0
+        self.start_time=time.time()
+        while self.count <= logtime:
+
+            try:
+                self.read_registers()
+                self.LIST_INV_AC_POWER.append(str(self.INV_AC_POWER) + ", ")
+                self.LIST_INV_TEMP.append(str(self.INV_TEMP) + ", ")
+
+                self.LIST_BAT_CURRENT_DIRECTION.append(str(self.BAT_CURRENT_DIRECTION) + ", ")
+                self.LIST_BAT_POWER.append(str(self.BAT_POWER) + ", ")
+                self.LIST_BAT_SOC.append(str(self.BAT_SOC) + ", ")
+
+                self.LIST_CUM_Production.append(str(self.Cumulative_production) + ", ")
+                self.LIST_CUM_GRID_FEED_IN.append(str(self.Cumulative_grid_feed_in) + ", ")
+                self.LIST_CUM_ENERGY_PURCHASED.append(str(self.Cumulative_energy_purchased) + ", ")
+
+                self.file = open(filepath, 'w')
+                self.file.write("Inv AC power: ")
+                self.file.writelines(self.LIST_INV_AC_POWER)
+                self.file.write("\n")
+                self.file.write("Inv temperature: ")
+                self.file.writelines(self.LIST_INV_TEMP)
+                self.file.write("\n")
+                self.file.write("Bat curent direction: ")
+                self.file.writelines(self.LIST_BAT_CURRENT_DIRECTION)
+                self.file.write("\n")
+                self.file.write("Battery power: ")
+                self.file.writelines(self.LIST_BAT_POWER)
+                self.file.write("\n")
+                self.file.write("Battery SOC: ")
+                self.file.writelines(self.LIST_BAT_SOC)
+                self.file.write("\n")
+                self.file.write("Cum production: ")
+                self.file.writelines(self.LIST_CUM_Production)
+                self.file.write("\n")
+                self.file.write("CUM grid feed-in: ")
+                self.file.writelines(self.LIST_CUM_GRID_FEED_IN)
+                self.file.write("\n")
+                self.file.write("cum energy purchased: ")
+                self.file.writelines(self.LIST_CUM_ENERGY_PURCHASED)
+                self.file.close()
+
+                self.count = time.time() - self.start_time
+                print('Total time: ', self.count)
+
+            except:
+                print("pass")
+                self.count = time.time() - self.start_time
+                print('Total time: ', self.count)
+                pass
+
+
+
+
+
+
 
 
 
