@@ -45,7 +45,7 @@ def initialize_RTU(obj,baud,bytesize,stopbits,serial_timeout,address):
     obj.instrument.clear_buffers_before_each_transaction = True     
 
 ##Global graph function, object parsed, values must be read from object. NOT TESTED. Variable names need to be made consistent across classes 
-def graph_std(obj):
+def graph_std1234(obj):
     i = 0;
     while i<(obj.tracked_duration/5):
         figure, ax = plt.subplots(figsize=(8,8))
