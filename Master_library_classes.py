@@ -710,9 +710,6 @@ class Fronius_Gen24_RTU:
         self.tracked_duration = 500
         initialize_RTU(self,9600,8,1,0.5,1)
 
-    def ASHURANDOMFUNCTION123(self):
-        print('u suck loser')
-
     def configure(self):
         self.ChaGriSet = self.instrument.write_register(40360, 1, 0, 6, False)
         self.MinRsvPct = self.instrument.write_register(40350, 1000, 0, 6, False)
