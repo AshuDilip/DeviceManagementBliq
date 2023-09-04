@@ -2059,7 +2059,7 @@ class Growatt_SPH_RTU():
     def configure(self):
         self.batFirstStopSOC = self.instrument.write_register(1091, 99, 0, 6, False)  # Now 99%: Stop Charge SOC When Bat First 1%. Range=[0,100]
         time.sleep(5)
-        self.GridFirstStopSOC = self.instrument.write_register(1071, 5, 0, 6, False)  # Now 20%: Stop Discharge SOC When Grid First. Range=[0,100]
+        self.GridFirstStopSOC = self.instrument.write_register(1071, 15, 0, 6, False)  # Now 20%: Stop Discharge SOC When Grid First. Range=[0,100]
         time.sleep(5)
         self.GridFirstStart = self.instrument.write_register(1080, 0, 0, 6, False) #Now 00:00    High Bit 0-23 low bit 0-59
         time.sleep(5)
@@ -2073,8 +2073,31 @@ class Growatt_SPH_RTU():
         time.sleep(5)
         self.LoadFirstStop = self.instrument.write_register(1111, 5947, 0, 6,False)  # Now 23:59  High Bit 0-23 low bit 0-59 (See Excel document how this is calculated)
         time.sleep(5)
+        self.ACChargeSwitch = self.instrument.write_register(1092, 1, 0, 6, False)  # Now enabled: [0 disable, 1 enable]
+        time.sleep(5)
         print('- Inverter and battery settings are configured')
-
+    def idle_1(self): #Can be used only when inverter allows 0%
+        self.GridFirstStopSOC = self.instrument.write_register(1071, 15, 0, 6, False)  # Now 100%: Stop Discharge SOC When Grid First. Range=[0,100]
+        time.sleep(5)
+        self.GridFirstDischargePowerRate = self.instrument.write_register(1070, 0, 0, 6, False)  # Now 5%: Discharge Power Rate When Grid First 1%. Range=[0,100]
+        time.sleep(5)
+        self.LoadFirstEnable = self.instrument.write_register(1112, 0, 0, 6, False)  # Now enable: [0 disable, 1 enable]
+        time.sleep(5)
+        self.BatFirstEnable = self.instrument.write_register(1102, 0, 0, 6, False)  # Now disabled, because we want to discharge: [0 disable, 1 enable]
+        time.sleep(5)
+        self.GridFirstEnable = self.instrument.write_register(1082, 1, 0, 6, False)  # Now enable: [0 disable, 1 enable]
+        time.sleep(5)
+    def idle_2(self): #Can always be allowed
+        self.GridFirstStopSOC = self.instrument.write_register(1071, 100, 0, 6, False)  # Now 100%: Stop Discharge SOC When Grid First. Range=[0,100]
+        time.sleep(5)
+        self.GridFirstDischargePowerRate = self.instrument.write_register(1070, 5, 0, 6, False)  # Now 5%: Discharge Power Rate When Grid First 1%. Range=[0,100]
+        time.sleep(5)
+        self.LoadFirstEnable = self.instrument.write_register(1112, 0, 0, 6, False)  # Now enable: [0 disable, 1 enable]
+        time.sleep(5)
+        self.BatFirstEnable = self.instrument.write_register(1102, 0, 0, 6, False)  # Now disabled, because we want to discharge: [0 disable, 1 enable]
+        time.sleep(5)
+        self.GridFirstEnable = self.instrument.write_register(1082, 1, 0, 6, False)  # Now enable: [0 disable, 1 enable]
+        time.sleep(5)
     def self_consumption(self):
         self.BatFirstEnable = self.instrument.write_register(1102, 0, 0, 6,False)  # Now disabled, because we want to discharge: [0 disable, 1 enable]
         time.sleep(5)
@@ -2083,20 +2106,8 @@ class Growatt_SPH_RTU():
         self.LoadFirstEnable = self.instrument.write_register(1112, 1, 0, 6, False)  # Now enable: [0 disable, 1 enable]
         time.sleep(5)
         print('- Self-consumption')
-
-    def stop(self):
-        self.ACChargeSwitch = self.instrument.write_register(1092, 0, 0, 6, False)  # Now disabled:  [0 disable, enable]
-        time.sleep(5)
-        self.BatFirstEnable = self.instrument.write_register(1102, 0, 0, 6, False)  # Now disabled: [0 disable, 1 enable]
-        time.sleep(5)
-        self.GridFirstEnable = self.instrument.write_register(1082, 0, 0, 6, False)  # Now disabled: [0 disable, enable]
-        time.sleep(5)
-        print('- Inverter has stopped with charging or discharging')
-        time.sleep(0.1)
     def charge(self,charge_power):
         self.BatFirstPowerRate = self.instrument.write_register(1090, charge_power, 0, 6, False)  # Now 99%: Charge Power Rate When Bat First 1%. Range=[0,100]
-        time.sleep(5)
-        self.ACChargeSwitch = self.instrument.write_register(1092, 1, 0, 6, False)  # Now enabled: [0 disable, 1 enable]
         time.sleep(5)
         self.LoadFirstEnable = self.instrument.write_register(1112, 0, 0, 6, False)  # Now enable: [0 disable, 1 enable]
         time.sleep(5)
@@ -2106,7 +2117,7 @@ class Growatt_SPH_RTU():
         time.sleep(5)
         print('- Battery is charging with {}%'.format(charge_power))
     def discharge(self,discharge_power):
-        self.GridFirstStopSOC = self.instrument.write_register(1071, 20, 0, 6, False)  # Now 20%: Stop Discharge SOC When Grid First. Range=[0,100]
+        self.GridFirstStopSOC = self.instrument.write_register(1071, 15, 0, 6, False)  # Now 100%: Stop Discharge SOC When Grid First. Range=[0,100]
         time.sleep(5)
         self.GridFirstDischargePowerRate = self.instrument.write_register(1070, discharge_power, 0, 6, False)  # Now 99%: Discharge Power Rate When Grid First 1%. Range=[0,100]
         time.sleep(5)
@@ -2117,41 +2128,6 @@ class Growatt_SPH_RTU():
         self.GridFirstEnable = self.instrument.write_register(1082, 1, 0, 6, False)  # Now enable: [0 disable, 1 enable]
         time.sleep(5)
         print('- Battery is discharging with {}%'.format(discharge_power))
-    def idle_timeslots(self):
-        self.BatFirstEnable = self.instrument.write_register(1102, 0, 0, 6,False)  # Now disabled, because we want to discharge: [0 disable, 1 enable]
-        time.sleep(5)
-        self.GridFirstEnable = self.instrument.write_register(1082, 0, 0, 6, False)  # Now enable: [0 disable, 1 enable]
-        time.sleep(5)
-        self.LoadFirstEnable = self.instrument.write_register(1112, 1, 0, 6, False)  # Now enable: [0 disable, 1 enable]
-        time.sleep(5)
-        self.LoadFirstStart = self.instrument.write_register(1110, 0, 0, 6, False)  # Now 00:00    High Bit 0-23 low bit 0-59
-        time.sleep(5)
-        self.LoadFirstStop = self.instrument.write_register(1111, 1, 0, 6, False)  # Now 23:59  High Bit 0-23 low bit 0-59 (See Excel document how this is calculated)
-        time.sleep(5)
-    def idle_targetsoc_disch(self):
-        self.BatFirstEnable = self.instrument.write_register(1102, 0, 0, 6,False)  # Now disabled, because we want to discharge: [0 disable, 1 enable]
-        time.sleep(5)
-        self.GridFirstEnable = self.instrument.write_register(1082, 0, 0, 6, False)  # Now enable: [0 disable, 1 enable]
-        time.sleep(5)
-        self.LoadFirstEnable = self.instrument.write_register(1112, 1, 0, 6, False)  # Now enable: [0 disable, 1 enable]
-        time.sleep(5)
-        self.GridFirstStopSOC = self.instrument.write_register(1071, 100, 0, 6, False)  # Now 20%: Stop Discharge SOC When Grid First. Range=[0,100]
-        time.sleep(5)
-        self.batFirstStopSOC = self.instrument.write_register(1091, 10, 0, 6, False)  # Now 99%: Stop Charge SOC When Bat First 1%. Range=[0,100]
-        time.sleep(5)
-        print('IDLE mode')
-    def idle_targetsoc_chg(self):
-        self.LoadFirstEnable = self.instrument.write_register(1112, 0, 0, 6, False)  # Now enable: [0 disable, 1 enable]
-        time.sleep(5)
-        self.GridFirstEnable = self.instrument.write_register(1082, 0, 0, 6, False)  # Now enable: [0 disable, 1 enable]
-        time.sleep(5)
-        self.BatFirstEnable = self.instrument.write_register(1102, 1, 0, 6,False)  # Now disabled, because we want to discharge: [0 disable, 1 enable]
-        time.sleep(5)
-        self.batFirstStopSOC = self.instrument.write_register(1091, 10, 0, 6, False)  # Now 99%: Stop Charge SOC When Bat First 1%. Range=[0,100]
-        time.sleep(5)
-        self.BatFirstPowerRate = self.instrument.write_register(1090, 80, 0, 6, False)  # Now 99%: Charge Power Rate When Bat First 1%. Range=[0,100]
-        time.sleep(5)
-        print('IDLE mode')
     def read_registers(self):
         self.INVSTATE = self.instrument.read_register(1000, 0, 4, False)
         time.sleep(0.1)
@@ -2205,11 +2181,11 @@ class Growatt_SPH_RTU():
 
         # self.PBATCHARGE = self.instrument.read_register(1012, 1, 4, False)
         # time.sleep(0.1)
-        self.PBATCHARGE = self.instrument.read_long(1011,4,False)
+        self.PBATCHARGE = self.instrument.read_long(1011,4,False)/10
         time.sleep(0.1)
         # self.PBATDIS = self.instrument.read_register(1010, 1, 4, False)
         # time.sleep(0.1)
-        self.PBATDIS = self.instrument.read_long(1009, 4, False)
+        self.PBATDIS = self.instrument.read_long(1009, 4, False)/10
         time.sleep(0.1)
         self.VBAT = self.instrument.read_register(1087, 2, 4, False)
         time.sleep(0.1)
@@ -2233,7 +2209,6 @@ class Growatt_SPH_RTU():
         time.sleep(0.1)
         self.Firmware = self.instrument.read_string(9, 3, 3)
         time.sleep(0.1)
-
     def tabulate(self):
         self.read_registers()
         self.table1 = [['Register naam', 'Register waarde', 'Eenheid'],
