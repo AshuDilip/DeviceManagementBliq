@@ -2087,7 +2087,7 @@ class Growatt_SPH_RTU():
         time.sleep(5)
         self.GridFirstEnable = self.instrument.write_register(1082, 1, 0, 6, False)  # Now enable: [0 disable, 1 enable]
         time.sleep(5)
-    def idle_2(self): #Can always be allowed
+    def idle_2(self): #Can always be used, it sets dischg power to 5%
         self.GridFirstStopSOC = self.instrument.write_register(1071, 100, 0, 6, False)  # Now 100%: Stop Discharge SOC When Grid First. Range=[0,100]
         time.sleep(5)
         self.GridFirstDischargePowerRate = self.instrument.write_register(1070, 5, 0, 6, False)  # Now 5%: Discharge Power Rate When Grid First 1%. Range=[0,100]
