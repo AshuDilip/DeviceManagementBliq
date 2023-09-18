@@ -1442,119 +1442,76 @@ class Solaredge_hybrid_RTU():
         initialize_RTU(self,9600,8,1,5,1)
         if configure>0:
             print('Configuring StorEdge inverter...')
-            # self.AdvancedPwrControlEn = self.instrument.write_register(61762, 1, 0, 6, False)  # 1:enable, 0:disable (default)
-            # time.sleep(5)
-            # self.ReactivePwrConfig = self.instrument.write_register(61700, 4, 0, 6, False)  # 0: (Fixed CosPhi mode), 1: ,2: , 3:, 4: (RRCR mode)
-            # time.sleep(5)
-            # self.Commit_Power_Control_Settings = self.instrument.write_register(61696, 0, 0, 6, False)  #
-            # time.sleep(5)
+
             self.ExportConf_Ctrl = self.instrument.write_register(57344, 0, 0, 6, False)  # 0: disable Export configuration,
             time.sleep(5)
             self.StorageConf_CtrlMode = self.instrument.write_register(57348, 4, 0, 6, False)  # 4: remote, 0-4
             time.sleep(5)
             self.StorageConf_AcChargePolicy = self.instrument.write_register(57349, 1, 0, 6, False)  # 0: disabled, 1: Always allowed, 0-3
             time.sleep(5)
-            # self.StorageConf_AcChargeLimit = self.instrument.write_register(57350, 0, 0, 6, False) #0-Max_Float, RELEVANT ONLY FOR SOTRAGE AC CHARGE POLICY MODES 2 AND 3 SO NOT NEEDED
-            # time.sleep(25)
-            # self.StorageConf_BackupReserved = self.instrument.write_register(57352, 0, 0, 6, False) #0-100%
-            # time.sleep(25)
             # default mode when remote control mode has expired
             self.Set_StorageConf_DefaultMode = self.instrument.write_register(57354, 7, 0, 6, False)  # 0:OFF, 1:charges excess pv only,2:charge from pv first before producing ac power, 3:charge from pv+ac to max battery power with priority pv,-7
             time.sleep(5)
             print('Configuration complete.')
 
     def read_registers(self):
-            self.INVSTATE = self.instrument.read_register(40108, 0, 3, False)  ##### Inverter status                   #
-            self.BMSSTATE = 0#self.instrument.read_register(57734, 0, 3, False)  ##### Battery status
-            #self.WORKMODE = self.instrument.read_register(33132, 0, 3, False)     ##### Workmode / Priority
+            self.INVSTATE = self.instrument.read_register(40107, 0, 3, False)  ##### Inverter status                   #
+            #self.BMSSTATE = self.instrument.read_long(57734,3,False)  ##### Battery status #mistake in SE protocol
+            self.BMSSTATE = self.instrument.read_register(57734, 0, 3,False)  ##### Battery status
+
             self.VDC1 = self.instrument.read_register(40099, 1, 3, False)  ##### DC-input 1 Voltage                #IGEN READS: 98
             self.IDC1 = self.instrument.read_register(40097, 4, 3, False)  ##### DC-input 1 Current                #IGEN READS: 96
             self.PDC1 = self.instrument.read_register(40101, 1, 3, True)  ##### DC-input 1 Power                   #IGEN READS: 100
-            # self.VDC2 = self.instrument.read_register(33051, 1, 4, False)         ##### DC-input 2 Voltage
-            # self.IDC2 = self.instrument.read_register(33052, 1, 4, False)         ##### DC-input 2 Current
-            # self.PDC2 = self.instrument.read_register(10, 1, 4, False)            ##### DC-input 2 Power
-            # self.INPUTPOWER = self.instrument.read_long(33057,4, True, 0)         ##### Total DC Input Power
+
             self.OUTPUTPOWER = self.instrument.read_register(40083, 0, 3, True)  ##### Total AC Output Power              #
             self.VL1 = self.instrument.read_register(40076, 1, 3, False)  ##### Phase 1 Voltage                   #
-            self.AL1 = self.instrument.read_register(40073, 3, 3, False)  ##### Phase 1 Current                   #
+            self.AL1 = self.instrument.read_register(40072, 3, 3, False)  ##### Phase 1 Current                   #
             self.FAC1 = self.instrument.read_register(40085, 3, 3, False)  ##### Phase 1 Frequency                 #
             self.VL2 = self.instrument.read_register(40077, 1, 3, False)  ##### Phase 2 Voltage                   #
-            self.AL2 = self.instrument.read_register(40074, 3, 3, False)  ##### Phase 2 Current                   #
-            # self.FAC2 = self.instrument.read_register(40078, 1, 3, False)         ##### Phase 2 Frequency
+            self.AL2 = self.instrument.read_register(40073, 3, 3, False)  ##### Phase 2 Current                   #
             self.VL3 = self.instrument.read_register(40078, 1, 3, False)  ##### Phase 3 Voltage                   #
-            self.AL3 = self.instrument.read_register(40075, 3, 3, False)  ##### Phase 3 Current                   #
-            #self.FAC3 = self.instrument.read_register(40079, 1, 3, False)         ##### Phase 3 Frequency
+            self.AL3 = self.instrument.read_register(40074, 3, 3, False)  ##### Phase 3 Current                   #
 
-            # self.ETODAY = self.instrument.read_register(33035, 1, 4, False)       ##### Daily Production
-            # self.ETOTAL = self.instrument.read_long(33029,4, True, 0)             ##### Cumulative Production
-            # self.PURTODAY = self.instrument.read_register(33171, 1, 4, False)     ##### Daily Energy Purchased
-            # self.PURTOTAL = self.instrument.read_long(33169,4, True, 0)           ##### Cumulative Energy Purchased
-            # self.FEEDINTODAY = self.instrument.read_register(33175, 1, 4, False)  ##### Daily Grid Feed-in
-            # self.FEEDINTOTAL = self.instrument.read_long(33173,4, True, 0)        ##### Cumulative Grid Feed-in
 
-            # self.PBAT1 = self.instrument.read_register(57716, 0, 3, False)  ##### Battery Power
-            # self.PBAT2 = self.instrument.read_register(57717, 0, 3, False)  ##### Battery Power
-            # self.PBATxx = self.instrument.read_registers(57716, 2, 3)
-            # self.PBAT = convert_binair_float32(self.PBATxx[0], self.PBATxx[1])  ##### Battery Power
 
-            # self.PBAT=self.instrument.read_registers(57716,2,3)
-            self.PBAT=self.instrument.read_long(57716,3,True)
-            # print(self.PBAT)
+            self.PBATxx = self.instrument.read_registers(57716, 2, 3)
+            self.PBAT = convert_binair_float32(self.PBATxx[0], self.PBATxx[1])  ##### Battery Power
 
-            # self.VBAT1 = self.instrument.read_register(57712, 0, 4, False)  ##### Battery Voltage
-            # self.VBAT2 = self.instrument.read_register(57713, 0, 4, False)  ##### Battery Voltage
-            # self.VBATxx = self.instrument.read_registers(57712, 2, 3)
-            # self.VBAT = convert_binair_float32(self.VBATxx[0], self.VBATxx[1])  ##### Battery Voltage
-            self.VBAT = self.instrument.read_long(57712, 3, True)
+            self.VBATxx = self.instrument.read_registers(57712, 2, 3)
+            self.VBAT = convert_binair_float32(self.VBATxx[0], self.VBATxx[1])  ##### Battery Voltage
 
-            # self.ABAT1 = self.instrument.read_register(57714, 0, 3, False)  ##### Battery Current)
-            # self.ABAT2 = self.instrument.read_register(57715, 0, 3, False)  ##### Battery Current
-            # self.ABATxx = self.instrument.read_registers(57714, 2, 3)
-            # self.ABAT = convert_binair_float32(self.ABATxx[0], self.ABATxx[1])  ##### Battery Current
-            self.ABAT = self.instrument.read_long(57714, 3, True)
+            self.ABATxx = self.instrument.read_registers(57714, 2, 3)
+            self.ABAT = convert_binair_float32(self.ABATxx[0], self.ABATxx[1])  ##### Battery Current
 
-            # self.SOCBAT1 = self.instrument.read_register(57732, 0, 3, False)  ##### Charge Capacity
-            # self.SOCBAT2 = self.instrument.read_register(57733, 0, 3, False)  ##### Charge Capacity
             self.SOCBATxx = self.instrument.read_registers(57732, 2, 3)
             self.SOCBAT = convert_binair_float32(self.SOCBATxx[0], self.SOCBATxx[1])  ##### Charge Capacity
 
-            # self.MAXENERGY1 = self.instrument.read_register(57726, 0, 3, False)  ##### Charge Capacity
-            # self.MAXENERGY2 = self.instrument.read_register(57727, 0, 3, False)  ##### Charge Capacity
-            self.MAXENERGY = 0#convert_binair_float32(self.MAXENERGY1, self.MAXENERGY2)  ##### Charge Capacity
+            self.MAXENERGY1 = self.instrument.read_register(57726, 0, 3, False)  ##### Charge Capacity
+            self.MAXENERGY2 = self.instrument.read_register(57727, 0, 3, False)  ##### Charge Capacity
+            self.MAXENERGY = convert_binair_float32(self.MAXENERGY1, self.MAXENERGY2)  ##### Charge Capacity
 
-            # self.AVAILABLEENERGY1 =0# self.instrument.read_register(57728, 0, 3, False)  ##### Charge Capacity
-            # self.AVAILABLEENERGY2 = 0#self.instrument.read_register(57729, 0, 3, False)  ##### Charge Capacity
-            self.AVAILABLEENERGY = 0#convert_binair_float32(self.AVAILABLEENERGY1, self.AVAILABLEENERGY2)  ##### Charge Capacity
-
-            # self.TODAYCHARGE = self.instrument.read_register(33163, 1, 4, False)  ##### Daily Charging Energy
-            # self.TOTALCHARGE = self.instrument.read_long(33161,4, True, 0)        ##### Total Charging Energy
-            # self.TODAYDIS = self.instrument.read_register(33167, 1, 4, False)     ##### Daily Discharging Energy
-            # self.TOTALDIS = self.instrument.read_long(33165,4, True, 0)           ##### Total Discharging Energy
+            self.AVAILABLEENERGY1 =0# self.instrument.read_register(57728, 0, 3, False)  ##### Charge Capacity
+            self.AVAILABLEENERGY2 = 0#self.instrument.read_register(57729, 0, 3, False)  ##### Charge Capacity
+            self.AVAILABLEENERGY = convert_binair_float32(self.AVAILABLEENERGY1, self.AVAILABLEENERGY2)  ##### Charge Capacity
 
             self.TEMP = self.instrument.read_register(40103, 2, 3, True)  ##### Temperature- Inverter             #
-            # self.BATTEMP1 = self.instrument.read_register(57708, 0, 3, False)  ##### Temperature- Battery
-            # self.BATTEMP2 = self.instrument.read_register(57709, 0, 3, False)  ##### Temperature- Battery
             self.BATTEMPxx = self.instrument.read_registers(57708, 2, 3)
             self.BATTEMP = convert_binair_float32(self.BATTEMPxx[0], self.BATTEMPxx[1])  ##### Temperature- Battery
 
-            # self.MAXBATTEMP1 = self.instrument.read_register(57710, 0, 3, False)  ##### Temperature- Battery
-            # self.MAXBATTEMP2 = self.instrument.read_register(57711, 0, 3, False)  ##### Temperature- Battery
             self.MAXBATTEMPxx = self.instrument.read_registers(57710, 2, 3)
             self.MAXBATTEMP =convert_binair_float32(self.MAXBATTEMPxx[0], self.MAXBATTEMPxx[1])  ##### Temperature- Battery
 
             self.Alarmcode1 = self.instrument.read_register(40109, 0, 3, False)  ##### Alarmcode 1                       #
             self.Alarmcode1bat = self.instrument.read_register(57738, 0, 3, False)  ##### Alarmcode 1                       #
-            # self.Fault1 = self.instrument.read_register(33096, 1, 3, False)       ##### Fault 1
             #
             self.ACPSF=self.instrument.read_register(40084,0,3,True)
             time.sleep(0.1)
-            # self.C_P = self.instrument.read_long(40093,3,False,0)
-            # self.C_Pxx = self.instrument.read_registers(40093,2,3)
-            # self.C_P=int(convert_dec_int32(self.C_Pxx[0],self.C_Pxx[1]),2)
+
             self.C_P=self.instrument.read_long(40093,3,False)
             time.sleep(0.1)
             self.ACLSF = self.instrument.read_register(40095, 0, 3, False)
             time.sleep(0.1)
+
             self.T_D_Exx = self.instrument.read_registers(57718, 4, 3)
             self.T_D_E = int(convert_dec_int32(self.T_D_Exx[1],self.T_D_Exx[0]),2)
             # self.T_D_E=self.instrument.read_long(57718,4,3)
@@ -1563,13 +1520,10 @@ class Solaredge_hybrid_RTU():
             self.T_C_E = int(convert_dec_int32(self.T_C_Exx[1], self.T_C_Exx[0]), 2)
             # self.T_C_E = self.instrument.read_long(57722,4, 3)
             time.sleep(0.1)
-            # self.MTEExx = self.instrument.read_registers(40226, 2, 3)
-            # print(self.MTEExx)
-            # self.MTEE = int(convert_dec_int32(self.MTEExx[0], self.MTEExx[1]), 2)
+
             self.MTEE=self.instrument.read_long(40226,3,False)
             time.sleep(0.1)
-            # self.MTIExx = self.instrument.read_registers(40234, 2, 3)
-            # self.MTIE = int(convert_dec_int32(self.MTIExx[0], self.MTIExx[1]), 2)
+
             self.MTIE=self.instrument.read_long(40234,3,False)
             time.sleep(0.1)
             self.MTRP = self.instrument.read_register(40206,0, 3, True)
@@ -1584,87 +1538,67 @@ class Solaredge_hybrid_RTU():
             self.MTIEA = int(convert_dec_int32(self.MTIEAxx[0], self.MTIEAxx[1]), 2)
             time.sleep(0.1)
 
+    def meterpower(self):
+        self.MTRP = self.instrument.read_register(40206, 0, 3, True)
+        print(self.MTRP)
+
     def tabulate(self):
         self.read_registers()
         self.table = [['Register naam', 'Register waarde', 'Eenheid'],
                  ['Inverter status', self.INVSTATE, '-'],
                  ['BMS Status', self.BMSSTATE, '-'],
-                 # ['Workmode / Priority', self.WORKMODE,'-'],
-                 ['DC-input 1 Voltage', self.VDC1, 'V'],
-                 ['DC-input 1 Current', self.IDC1, 'A'],
-                 ['DC-input 1 Power', self.PDC1, 'W'],
-                 # ['DC-input 2 Voltage', self.VDC2, 'V'],
-                 # ['DC-input 2 Current', self.IDC2, 'A'],
-                 # ['DC-input 2 Power',self.PDC2, 'W'],
-                 # ['TOTAL DC INPUT POWER',self.INPUTPOWER, 'W'],
+                 ['DC-input 1 Voltage (unsupported)', self.VDC1, 'V'],
+                 ['DC-input 1 Current (unsupported)', self.IDC1, 'A'],
+                 ['DC-input 1 Power (unsupported)', self.PDC1, 'W'],
                  ['TOTAL AC OUTPUT POWER', self.OUTPUTPOWER, 'W'],
+                 ['AC power scale factor', self.ACPSF, '-'],
                  ['Phase 1 Voltage', self.VL1, 'V'],
                  ['Phase 1 Current', self.AL1, 'A'],
                  ['Phase 1 Frequency', self.FAC1, 'Hz'],
                  ['Phase 2 Voltage', self.VL2, 'V'],
                  ['Phase 2 Current', self.AL2, 'A'],
-                 # ['Phase 2 Frequency', self.FAC2, 'Hz'],
                  ['Phase 3 Voltage', self.VL3, 'V'],
                  ['Phase 3 Current', self.AL3, 'A'],
-                 # ['Phase 3 Frequency', self.FAC3, 'Hz'],
-                 # ['Daily production',self.ETODAY, 'kWh'],
-                 # ['Cumulative production',self.ETOTAL, 'kWh'],
-                 # ['Daily purchased',self.PURTODAY, 'kWh'],
-                 # ['Total purchased',self.PURTOTAL, 'kWh'],
-                 # ['Daily grid feed-in',self.FEEDINTODAY, 'kWh'],
-                 # ['Total grid feed-in',self.FEEDINTOTAL, 'kWh'],
                  ['Battery Power', self.PBAT, 'W'],
                  ['Battery Voltage', self.VBAT, 'V'],
                  ['Battery Current', self.ABAT, 'A'],
                  ['Charge Capacity', self.SOCBAT, '%'],
                  ['MAXENERGY', self.MAXENERGY, 'WH'],
                  [' AVAILABLEENERGY', self.AVAILABLEENERGY, 'WH'],
-                 # ['Daily charging energy',self.TODAYCHARGE, 'kWh'],
-                 # ['Total charging energy',self.TOTALCHARGE, 'kWh'],
-                 # ['Daily discharging energy',self.TODAYDIS, 'kWh'],
-                 # ['Total discharging energy',self.TOTALDIS, 'kWh'],
                  ['Temperature-Inverter', self.TEMP, 'C'],
                  ['Temperature-Battery', self.BATTEMP, 'C'],
                  ['Maximum Temperature-Battery', self.MAXBATTEMP, 'C'],
                  ['Alarmcode1', self.Alarmcode1, '-'],
                  ['Alarmcode1bat', self.Alarmcode1bat, '-'],
-                 ['AC power scale factor', self.ACPSF, '-'],
-                 ['AC lifetime energy production', self.C_P],
-                 ['AC power energy production scale factor', self.ACLSF],
-                 ['Bat lifetime export', self.T_D_E],
-                 ['Bat lifetime import', self.T_C_E],
-                 ['Meter total export', self.MTEE],
-                 ['Meter total import', self.MTIE],
-                 ['Meter total real power', self.MTRP],
-                 ['Meter AC real power SF', self.MACPSF],
-                 ['Meter total export apparent', self.MTEEA],
-                 ['Meter total import apparent', self.MTIEA]]
+                 ['AC lifetime energy production', self.C_P, "Wh"],
+                 ['AC power energy production scale factor', self.ACLSF,""],
+                 ['Bat lifetime export', self.T_D_E,"Wh"],
+                 ['Bat lifetime import', self.T_C_E,"Wh"],
+                 ['Meter total export', self.MTEE,"Wh"],
+                 ['Meter total import', self.MTIE,"Wh"],
+                 ['Meter total real power', self.MTRP,"W"],
+                 ['Meter AC real power SF', self.MACPSF,""],
+                 ['Meter total export apparent', self.MTEEA,"Wh"],
+                 ['Meter total import apparent', self.MTIEA,"Wh"]]
 
         # Show the Table
         print('Reading data Registers SolarEdge StorEdge')
         print(tabulate(self.table, headers='firstrow', tablefmt='fancy_grid'))
     def charge(self,charge_power): #in [W]
-        # self.StorageRemoteCtrl_CommandTimeout = self.instrument.write_register(57355, 86400, 0, 6, False)  # 0-86400(24h)
-        # time.sleep(25)
-        self.StorageRemoteCtrl_CommandTimeout = self.instrument.write_registers(57355, [1,20864])  # 0-86400(24h)
-        time.sleep(5)
+        self.StorageRemoteCtrl_CommandTimeout = self.instrument.write_register(57355, 86400, 0, 6, False)  # 0-86400(24h)
+        time.sleep(25)
         self.StorageRemoteCtrl_CommandMode = self.instrument.write_register(57357, 3, 0, 6, False)  # 0-7 (3:charge full from AC+PV, 4: discharge)
         time.sleep(5)
-        # self.StorageRemoteCtrl_ChargeLimit = self.instrument.write_register(53758, charge_power, 0, 6, False)  # 0-Battery Max Power (W)
-        # time.sleep(5)
-        self.StorageRemoteCtrl_ChargeLimit = self.instrument.write_registers(53758, [0,charge_power])  # 0-Battery Max Power (W)
+        self.StorageRemoteCtrl_ChargeLimit = self.instrument.write_register(53758, charge_power, 0, 6, False)  # 0-Battery Max Power (W)
         time.sleep(5)
-        # StorageRemoteCtrl_DischargeLimit = instrument.write_register(57360, 0, 0, 6, False) #0-Battery Max Power
-        # time.sleep(5)
+
         print('Inverter succesfully charging')
     def discharge(self,discharge_power): #in [W]
         self.StorageRemoteCtrl_CommandTimeout = self.instrument.write_register(57355, 86400, 0, 6, False)  # 0-86400(24h)
         time.sleep(5)
         self.StorageRemoteCtrl_CommandMode = self.instrument.write_register(57357, 4, 0, 6, False)  # 0-7 (3:charge full from AC+PV, 4: discharge)
         time.sleep(5)
-        # self.StorageRemoteCtrl_ChargeLimit = self.instrument.write_register(57358, 0, 0, 6, False)  # 0-Battery Max Power (W)
-        # time.sleep(5)
-        StorageRemoteCtrl_DischargeLimit = instrument.write_register(57360, discharge_power, 0, 6, False) #0-Battery Max Power
+        self.StorageRemoteCtrl_DischargeLimit = instrument.write_register(57360, discharge_power, 0, 6, False) #0-Battery Max Power
         time.sleep(5)
         print('Inverter succesfully disharging')
     # def stop(self):
