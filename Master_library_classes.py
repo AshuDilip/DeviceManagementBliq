@@ -1620,7 +1620,7 @@ class Solaredge_hybrid_RTU():
         time.sleep(5)
         self.StorageRemoteCtrl_CommandMode = self.instrument.write_register(57357, 4, 0, 6, False)  # 0-7 (3:charge full from AC+PV, 4: discharge)
         time.sleep(5)
-        [discharge_val1, discharge_val2] = int_to_float32_parts(discharge_power)
+        [discharge_val1, discharge_val2] = int_to_float32_parts(0)
         self.StorageRemoteCtrl_DischargeLimit = self.instrument.write_registers(57360, [discharge_val1, discharge_val2])  # 0-Battery Max Power
         time.sleep(5)
         print('Inverter in idle mode')
